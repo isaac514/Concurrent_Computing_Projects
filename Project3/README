@@ -1,0 +1,14 @@
+1. Are there any race conditions in this prefix sum computation? Why?
+
+    1a) No there are no race condition because the threads are ran sequentially and the arrB
+    is updated appropriately based on the preifx sum algorithm.
+
+2. Can the result of x[i]+x[i-2 h-1 ] of run h be saved back to x[i]? Explain your findings as clearly as possible.
+
+    2a) Yes this result could be stored back to the input array x, however this result also will need to be stored back to arrB[i,j] so that the algorithm works properly.
+
+3. The main() creates n threads in each iteration and waits for them to complete. There is a
+significant amount of time in creating and joining threads. If you are allowed to use extra
+variables/arrays and busy waiting, can you just create n threads and let them do all the work without the use of a temporary array B[*,*]? Suggest a solution and discuss its correctness.
+
+    3a) A solution is likely possible where the array B is not used. However this would require synchronization such that the thread relying on another computation have to wait until that computation completes. 

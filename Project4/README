@@ -1,0 +1,71 @@
+1) The logic of your program
+    The program follow a structure where threads are allowed to continuously executed but there executions
+    is halted or continued based on the conditions described in the program specifcation
+
+2) Why does your program work?
+    The program works because of the use of semaphores and shared data such the potVector 
+    the logic of the program ensures that the the potVector is updated appropriately and the
+    baby eagles are able to continuous eat until the mother eagle retires
+
+3) Convince me that your program works properly. More precisely, explain how your
+program ensures the following. Make sure you will have a convincing argument for each
+item. Note that an argument such as because a semaphore is used to ....., the indicated
+situation cannot happen" will not be counted as convincing. You should explain why the
+situation will not happen through the use of a semaphore or semaphores.
+0. At any time, there are no more than m baby eagles eating.
+
+    The pot vector is a global variable that has m pots therefore a maximum of m baby eagle are ever able to eat from the pots due 
+    to the array size
+
+1. A baby eagle must wait when he wants to eat but has no free feeding pot and/or all free feeding pots are all empty.
+
+    This is accomplished with the BabySema Semaphore which ensures that when the baby eagle sees that all of the pots are empty
+    the thread is blocked
+
+2. If there is a non-empty feeding pot, a hungry and ready-to-eat baby eagle can eat.
+
+    The baby eagle threads are always able to look for a pot to eat out of since the only condition where there are blocked
+    is when there are no full pots. This is done after the thread makes it past the ready_to_eat function
+
+3. No hungry baby eagle will eat using an empty feeding pot.
+
+    The pot vector uses 0 to represent an empty pot and 1 to represent a full pot. The baby eagle thread will only consume a
+    pot that has a value of 1. Then the will set it to 0.
+
+4. At any time, a feeding pot can only be used by one eating baby eagle.
+
+    The feeding out of the pots is done atomically so that only one baby eagle is able to consume the food in a feeding pot.
+    The array representing the feeding pots is a global variable so it is continuosly updated.
+
+5. Only one baby eagle among all baby eagles who want to eat can wake up the mother eagle.
+
+    This is accomplished with a semaphore acting as a mutex intitalized to 1, that only allows one baby eagle to enter the critical section.
+    The critical section in this case contains the code segment that searches the potVector to see if it is empty or not. The thread that makes 
+    is past the mutex waits until the mother eagle signals it semaphore before allow any waiting threads to enter the critical section.
+
+6. The mother eagle does not run until a baby eagle wakes her up.
+
+    The goto_sleep function calls wait and waits for a baby eagle to wake her up. This ensures that once the mother eagle thread reaches this function 
+    it always waits until it is signaled
+
+7. While the mother eagle is preparing food, no baby eagle can wake up the mother again until the mother goes back to take a nap.
+
+    The threads that are outside of the mutex are in the waiting state and the thread that made it through into the critical section is 
+    also in the waiting state until it is signaled. Onlt after it is signal will it be able to let other threads into the critical section 
+    and at this point the mother eagle will have performed the feeding operation
+
+8. Before all m feeding pots are filled, no hungry baby eagle can eat.
+
+    THe baby eagles are able to finished whatever operations that they are currently doing however they are only able to consume 
+    from the feeding pots if they have a value of 1 which they do not.
+
+9. Once the feeding pots are refilled, the mother eagle must allow baby eagles to eat. Then, she goes back to sleep.
+
+    The mother eagle signals the BabySem which then resumes the execution of the threads by first releasing the mutex, once the mutex is released the waiting 
+    threads will see that the pots have been filled and make it past the ready_to_eat function and then they are able the search for an availble pot to consume.
+
+10. You program terminates gracefully. More precisely, if t feedings are needed, then your program cannot terminate right after the mother eagle refills the feeding pots t times. Instead, your program must wait until all feeding pots become empty,even though there may be baby eagles waiting for food. How do you implement this requirement?
+
+    I implemented this by finding the cases where it is no longer nessary for the baby eagle threads to continue there execution. These cases where at the beginning of the the functions ready_to_eat
+    and finsihed eating. t+1 represent a feeding that should not occur, the global variable feedingNumber will get updated to this value on the last execution of the function food_ready(). Meanwhile
+    the Mother eagle thread recognizes that it is the last feeding in the function food_ready() and waits until it is signaled again. Once the baby eagles have consumes all of the food in the pots one of them will signal the mother to come off her wait. At this point despite that the one of the babyeagles wants food the mother eagle sets a flag representing an exit condition an then prints her final message and exits. Although the output says that the mother eagle "starts preparing food" she does not perform another feeding, this output comes from a baby eagle and is not indicative of the state of the mother eagle, with although does not make sense it does not violates any of the requirements, and at this point all of the baby eagles have already eaten their last feeding. So that eagle is a liar, perhaps just wishful thinking that hatchings will be able to get another feeding rather than having to fend for themseleves.
